@@ -45,12 +45,6 @@ dependencies {
 
     api "com.squareup.retrofit2:retrofit:$retrofit_version"
     api "com.squareup.retrofit2:converter-gson:$retrofit_version"
-//    implementation "com.google.code.gson:gson:$gson_version"
-
-//    api "com.squareup.retrofit2:converter-moshi:$retrofit_moshi_converter_version"
-//    api "com.squareup.moshi:moshi:$moshi_version"
-//    api "com.squareup.moshi:moshi-kotlin:$moshi_version"
-//    kapt("com.squareup.moshi:moshi-kotlin-codegen:$moshi_version")
 
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutine_core_version"
 
