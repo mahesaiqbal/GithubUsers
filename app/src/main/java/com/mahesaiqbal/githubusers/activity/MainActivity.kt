@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.mahesaiqbal.githubusers.adapter.MainAdapter
 import com.mahesaiqbal.githubusers.core.model.GithubUsersResponseItem
 import com.mahesaiqbal.githubusers.databinding.ActivityMainBinding
@@ -16,9 +17,20 @@ import org.koin.android.ext.android.inject
 
 class MainActivity : AppCompatActivity() {
 
+    private val TAG = "MainActivity"
+
     private val viewModel: MainViewModel by inject()
 
     private lateinit var binding: ActivityMainBinding
+
+    // A user ID. Only return users with an ID greater than this ID.
+    private var since = 0
+    // Results per page (max 100)
+    private var perPage = 10
+
+    private var isLoading = false
+
+    private val linearLayoutManager = LinearLayoutManager(this@MainActivity)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,10 +41,13 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         observeViewModel()
-        viewModel.getUsers()
+        viewModel.getUsers(since, perPage)
 
         binding.srlRefresh.setOnRefreshListener {
-            viewModel.getUsers()
+            // Return to the start page (10 data that appears)
+            since = 0
+            perPage = 10
+            viewModel.getUsers(since, perPage)
             binding.srlRefresh.isRefreshing = false
         }
     }
@@ -86,9 +101,60 @@ class MainActivity : AppCompatActivity() {
         }
 
         with(binding.rvUsers) {
-            layoutManager = LinearLayoutManager(this@MainActivity)
+            layoutManager = linearLayoutManager
             setHasFixedSize(true)
             adapter = mainAdapter
+
+            addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    super.onScrolled(recyclerView, dx, dy)
+
+                    Log.d(TAG, "scrollListener dx: $dx")
+                    Log.d(TAG, "scrollListener dy: $dy")
+
+                    if (dy > 0) {
+                        var childCount = linearLayoutManager.childCount
+                        var findFirstCompletelyVisibleItemPosition =
+                            linearLayoutManager.findFirstCompletelyVisibleItemPosition()
+                        var itemCount = mainAdapter.itemCount
+                        var lastItemInPage = linearLayoutManager.findLastCompletelyVisibleItemPosition()
+                        // Retrieve user data "id" based on the last item of the page to be the value "since"
+//                        var lastUserDataId = if (lastItemInPage == perPage) users[lastItemInPage].id
+
+                        Log.d(TAG, "scrollListener childCount: $childCount")
+                        Log.d(TAG, "scrollListener findFirstCompletelyVisibleItemPosition: $findFirstCompletelyVisibleItemPosition")
+                        Log.d(TAG, "scrollListener itemCount: $itemCount")
+                        Log.d(TAG, "scrollListener lastItemInPage: $lastItemInPage")
+//                        Log.d(TAG, "scrollListener lastUserDataId: $lastUserDataId")
+
+                        if (!isLoading) {
+                            if (childCount + findFirstCompletelyVisibleItemPosition >= itemCount) {
+                                Log.d(TAG, "ItemVisibleCount next paging: ${childCount + findFirstCompletelyVisibleItemPosition}")
+//                                loadMore()
+                            }
+                        }
+                    }
+                }
+            })
+        }
+    }
+
+    private fun loadMore(lastUserDataId: Int) {
+        isLoading = true
+        binding.progressBarPaging.visibility = View.VISIBLE
+
+        since = lastUserDataId
+        perPage += 10
+
+        if (perPage == 100) {
+            // Stop loading data
+            isLoading = false
+            binding.progressBarPaging.visibility = View.GONE
+        } else {
+            // Load data according to "since" and "per_page" data
+            viewModel.getUsers(since, perPage)
+            isLoading = false
+            binding.progressBarPaging.visibility = View.GONE
         }
     }
 }

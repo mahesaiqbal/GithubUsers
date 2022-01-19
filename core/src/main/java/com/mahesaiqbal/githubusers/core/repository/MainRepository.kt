@@ -7,7 +7,8 @@ import retrofit2.Response
 
 class MainRepository(private val apiService: Service) {
 
-    suspend fun getUsers(): Response<GithubUsersResponse> = apiService.getUsers()
+    suspend fun getUsers(since: Int, perPage: Int): Response<GithubUsersResponse> =
+        apiService.getUsers(since, perPage)
 
     suspend fun getUserDetail(username: String): Response<UserResponse> =
         apiService.getUserDetail(username)

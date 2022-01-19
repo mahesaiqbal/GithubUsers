@@ -23,12 +23,12 @@ class MainViewModel(private val repository: MainRepository) : ViewModel() {
     private val _userDetail = MutableLiveData<UserResponse>()
     val userDetail: LiveData<UserResponse> = _userDetail
 
-    fun getUsers() {
+    fun getUsers(since:Int, perPage: Int) {
         _screenState.postValue(ScreenState.LOADING)
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val response = repository.getUsers()
+                val response = repository.getUsers(since, perPage)
 
                 if (response.isSuccessful) {
                     // Check if user data is empty (soon)
