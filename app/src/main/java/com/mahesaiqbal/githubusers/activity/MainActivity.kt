@@ -30,6 +30,11 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         observeViewModel()
         viewModel.getUsers()
+
+        binding.srlRefresh.setOnRefreshListener {
+            viewModel.getUsers()
+            binding.srlRefresh.isRefreshing = false
+        }
     }
 
     private fun observeViewModel() {
