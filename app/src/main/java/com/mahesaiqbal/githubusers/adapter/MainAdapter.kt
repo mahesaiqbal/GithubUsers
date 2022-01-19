@@ -14,7 +14,7 @@ class MainAdapter : RecyclerView.Adapter<MainAdapter.ViewHolder>() {
 
     fun setData(newListData: List<GithubUsersResponseItem>?) {
         if (newListData == null) return
-//        listData.clear()
+        listData.clear()
         listData.addAll(newListData)
         notifyDataSetChanged()
     }

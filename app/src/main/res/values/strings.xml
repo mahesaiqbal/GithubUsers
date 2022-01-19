@@ -4,4 +4,5 @@
         <string name="username">Username</string>
         <string name="id">Id</string>
         <string name="repos_url">Repos URL</string>
+    <string name="oops_no_data_shown">Oops! No data shown</string>
 </resources>

@@ -27,8 +27,10 @@ class MainActivity : AppCompatActivity() {
     private var since = 0
     // Results per page (max 100)
     private var perPage = 10
-
+    // Loading for pagination
     private var isLoading = false
+    // Loading for data users for the first time
+    private var isFirstTimeLoading = true
 
     private val linearLayoutManager = LinearLayoutManager(this@MainActivity)
 
@@ -41,13 +43,23 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         observeViewModel()
-        viewModel.getUsers(since, perPage)
+
+        isFirstTimeLoading = true
+
+        if (isFirstTimeLoading) {
+            viewModel.getUsers(since, perPage)
+        }
 
         binding.srlRefresh.setOnRefreshListener {
             // Return to the start page (10 data that appears)
-            since = 0
-            perPage = 10
-            viewModel.getUsers(since, perPage)
+            isFirstTimeLoading = true
+
+            if (isFirstTimeLoading) {
+                since = 0
+                perPage = 10
+                viewModel.getUsers(since, perPage)
+            }
+
             binding.srlRefresh.isRefreshing = false
         }
     }
@@ -56,16 +68,21 @@ class MainActivity : AppCompatActivity() {
         viewModel.screenState.observe(this, Observer {
             when (it) {
                 ScreenState.LOADING -> {
-                    binding.progressBar.visibility = View.VISIBLE
+                    showLoading()
                 }
                 ScreenState.READY -> {
-                    binding.progressBar.visibility = View.GONE
+                    hideLoading()
+                    hideEmptyLayout()
+                    binding.rvUsers.visibility = View.VISIBLE
                 }
                 ScreenState.EMPTY -> {
-                    binding.progressBar.visibility = View.GONE
+                    hideLoading()
+                    showEmptyLayout()
+
                 }
                 is ScreenState.ERROR -> {
-                    binding.progressBar.visibility = View.GONE
+                    hideLoading()
+                    showEmptyLayout()
                     Toast.makeText(
                         this,
                         "MainActivity Error Get Data Users: ${it.message}",
@@ -101,6 +118,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         with(binding.rvUsers) {
+            visibility = View.VISIBLE
             layoutManager = linearLayoutManager
             setHasFixedSize(true)
             adapter = mainAdapter
@@ -119,18 +137,25 @@ class MainActivity : AppCompatActivity() {
                         var itemCount = mainAdapter.itemCount
                         var lastItemInPage = linearLayoutManager.findLastCompletelyVisibleItemPosition()
                         // Retrieve user data "id" based on the last item of the page to be the value "since"
-//                        var lastUserDataId = if (lastItemInPage == perPage) users[lastItemInPage].id
+                        var lastUserDataId = if (lastItemInPage == perPage - 1) {
+                            users[lastItemInPage].id
+                        } else {
+                            0
+                        }
 
                         Log.d(TAG, "scrollListener childCount: $childCount")
                         Log.d(TAG, "scrollListener findFirstCompletelyVisibleItemPosition: $findFirstCompletelyVisibleItemPosition")
                         Log.d(TAG, "scrollListener itemCount: $itemCount")
                         Log.d(TAG, "scrollListener lastItemInPage: $lastItemInPage")
-//                        Log.d(TAG, "scrollListener lastUserDataId: $lastUserDataId")
+                        Log.d(TAG, "scrollListener lastUserDataId: $lastUserDataId")
 
                         if (!isLoading) {
                             if (childCount + findFirstCompletelyVisibleItemPosition >= itemCount) {
                                 Log.d(TAG, "ItemVisibleCount next paging: ${childCount + findFirstCompletelyVisibleItemPosition}")
-//                                loadMore()
+
+                                if (lastUserDataId != 0) {
+                                    loadMore(lastUserDataId)
+                                }
                             }
                         }
                     }
@@ -140,21 +165,53 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadMore(lastUserDataId: Int) {
+        isFirstTimeLoading = false
         isLoading = true
         binding.progressBarPaging.visibility = View.VISIBLE
 
         since = lastUserDataId
-        perPage += 10
+//        perPage += 10
 
-        if (perPage == 100) {
-            // Stop loading data
-            isLoading = false
-            binding.progressBarPaging.visibility = View.GONE
-        } else {
+//        if (perPage == 100) {
+//            // Stop loading data
+//            isLoading = false
+//            binding.progressBarPaging.visibility = View.GONE
+//        } else {
+//            // Load data according to "since" and "per_page" data
+//            viewModel.getUsers(since, perPage)
+//            isLoading = false
+//            binding.progressBarPaging.visibility = View.GONE
+//        }
+
+        if (isLoading) {
             // Load data according to "since" and "per_page" data
             viewModel.getUsers(since, perPage)
             isLoading = false
             binding.progressBarPaging.visibility = View.GONE
         }
+    }
+
+    private fun showLoading() {
+        if (isFirstTimeLoading) {
+            binding.progressBar.visibility = View.VISIBLE
+            binding.progressBarPaging.visibility = View.GONE
+        } else {
+            binding.progressBar.visibility = View.GONE
+            binding.progressBarPaging.visibility = View.VISIBLE
+        }
+    }
+
+    private fun hideLoading() {
+        binding.progressBar.visibility = View.GONE
+        binding.progressBarPaging.visibility = View.GONE
+    }
+
+    private fun showEmptyLayout() {
+        binding.rvUsers.visibility = View.GONE
+        binding.rlViewEmpty.visibility = View.VISIBLE
+    }
+
+    private fun hideEmptyLayout() {
+        binding.rlViewEmpty.visibility = View.GONE
     }
 }
