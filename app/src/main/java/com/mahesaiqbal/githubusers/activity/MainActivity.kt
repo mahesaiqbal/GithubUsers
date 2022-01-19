@@ -40,7 +40,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 ScreenState.READY -> {
                     binding.progressBar.visibility = View.GONE
-                    initData(viewModel.users)
                 }
                 ScreenState.EMPTY -> {
                     binding.progressBar.visibility = View.GONE
@@ -54,6 +53,12 @@ class MainActivity : AppCompatActivity() {
                     ).show()
                     Log.d("MainActivity", "Error Get Data Users: ${it.message}")
                 }
+            }
+        })
+
+        viewModel.users.observe(this, Observer {
+            if (it != null) {
+                initData(it)
             }
         })
     }

@@ -15,10 +15,8 @@ class MainViewModel(private val repository: MainRepository) : ViewModel() {
     private val _screenState = MutableLiveData<ScreenState>()
     val screenState: LiveData<ScreenState> = _screenState
 
-//    private val _users = MutableLiveData<List<UsersResponse>>()
-//    val users: LiveData<List<UsersResponse>> = _users
-
-    var users: List<GithubUsersResponseItem> = listOf()
+    private val _users = MutableLiveData<List<GithubUsersResponseItem>>()
+    val users: LiveData<List<GithubUsersResponseItem>> = _users
 
     fun getUsers() {
         _screenState.postValue(ScreenState.LOADING)
@@ -31,7 +29,7 @@ class MainViewModel(private val repository: MainRepository) : ViewModel() {
                     // Check if user data is empty (soon)
                     _screenState.postValue(ScreenState.READY)
 
-                    response.body()?.let { users = it }
+                    _users.postValue(response.body())
                 } else {
                     _screenState.postValue(ScreenState.EMPTY)
                     _screenState.postValue(ScreenState.ERROR("MainViewModel getUsers error code: ${response.code()}"))
