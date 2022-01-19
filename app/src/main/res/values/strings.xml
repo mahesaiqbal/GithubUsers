@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">GithubUsers</string>
+        <string name="image_user">Image User</string>
+        <string name="username">Username</string>
+        <string name="id">Id</string>
+        <string name="repos_url">Repos URL</string>
 </resources>
