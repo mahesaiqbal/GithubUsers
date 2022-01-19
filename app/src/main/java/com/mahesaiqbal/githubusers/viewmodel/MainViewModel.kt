@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.mahesaiqbal.githubusers.core.model.UsersResponse
+import com.mahesaiqbal.githubusers.core.model.GithubUsersResponseItem
 import com.mahesaiqbal.githubusers.core.repository.MainRepository
 import com.mahesaiqbal.githubusers.model.ScreenState
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +18,7 @@ class MainViewModel(private val repository: MainRepository) : ViewModel() {
 //    private val _users = MutableLiveData<List<UsersResponse>>()
 //    val users: LiveData<List<UsersResponse>> = _users
 
-    var users: List<UsersResponse> = listOf()
+    var users: List<GithubUsersResponseItem> = listOf()
 
     fun getUsers() {
         _screenState.postValue(ScreenState.LOADING)

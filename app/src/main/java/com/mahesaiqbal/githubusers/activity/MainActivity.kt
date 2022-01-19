@@ -2,12 +2,13 @@ package com.mahesaiqbal.githubusers.activity
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mahesaiqbal.githubusers.adapter.MainAdapter
-import com.mahesaiqbal.githubusers.core.model.UsersResponse
+import com.mahesaiqbal.githubusers.core.model.GithubUsersResponseItem
 import com.mahesaiqbal.githubusers.databinding.ActivityMainBinding
 import com.mahesaiqbal.githubusers.model.ScreenState
 import com.mahesaiqbal.githubusers.viewmodel.MainViewModel
@@ -51,12 +52,13 @@ class MainActivity : AppCompatActivity() {
                         "MainActivity Error Get Data Users: ${it.message}",
                         Toast.LENGTH_SHORT
                     ).show()
+                    Log.d("MainActivity", "Error Get Data Users: ${it.message}")
                 }
             }
         })
     }
 
-    private fun initData(users: List<UsersResponse>) {
+    private fun initData(users: List<GithubUsersResponseItem>) {
         val mainAdapter = MainAdapter()
         mainAdapter.setData(users)
         mainAdapter.onItemClick = { selectedData ->
