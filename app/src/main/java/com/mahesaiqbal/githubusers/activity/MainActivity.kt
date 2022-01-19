@@ -66,13 +66,23 @@ class MainActivity : AppCompatActivity() {
                 initData(it)
             }
         })
+
+        viewModel.userDetail.observe(this, Observer {
+            if (it != null) {
+                Toast.makeText(
+                    this,
+                    "Username: ${it.login}\nEmail: ${it.email}\nCreated At: ${it.createdAt}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        })
     }
 
     private fun initData(users: List<GithubUsersResponseItem>) {
         val mainAdapter = MainAdapter()
         mainAdapter.setData(users)
         mainAdapter.onItemClick = { selectedData ->
-            Toast.makeText(this, selectedData.login, Toast.LENGTH_SHORT).show()
+            viewModel.getUserDetail(selectedData.login)
         }
 
         with(binding.rvUsers) {
