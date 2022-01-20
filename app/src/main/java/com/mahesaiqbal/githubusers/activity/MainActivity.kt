@@ -28,9 +28,13 @@ class MainActivity : AppCompatActivity() {
     // Results per page (max 100)
     private var perPage = 10
     // Loading for pagination
-    private var isLoading = false
+    private var isPaginateLoading = false
     // Loading for data users for the first time
     private var isFirstTimeLoading = true
+    // Container list every time calling users per_page data
+    private var usersDisplay: MutableList<GithubUsersResponseItem> = mutableListOf()
+
+    private var mainAdapter: MainAdapter = MainAdapter()
 
     private val linearLayoutManager = LinearLayoutManager(this@MainActivity)
 
@@ -78,7 +82,6 @@ class MainActivity : AppCompatActivity() {
                 ScreenState.EMPTY -> {
                     hideLoading()
                     showEmptyLayout()
-
                 }
                 is ScreenState.ERROR -> {
                     hideLoading()
@@ -95,7 +98,11 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.users.observe(this, Observer {
             if (it != null) {
-                initData(it)
+                if (it.size == 10) {
+                    usersDisplay += it
+                }
+
+                initData()
             }
         })
 
@@ -110,9 +117,8 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun initData(users: List<GithubUsersResponseItem>) {
-        val mainAdapter = MainAdapter()
-        mainAdapter.setData(users)
+    private fun initData() {
+        mainAdapter.setData(usersDisplay)
         mainAdapter.onItemClick = { selectedData ->
             viewModel.getUserDetail(selectedData.login)
         }
@@ -127,35 +133,17 @@ class MainActivity : AppCompatActivity() {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     super.onScrolled(recyclerView, dx, dy)
 
-                    Log.d(TAG, "scrollListener dx: $dx")
-                    Log.d(TAG, "scrollListener dy: $dy")
-
                     if (dy > 0) {
                         var childCount = linearLayoutManager.childCount
                         var findFirstCompletelyVisibleItemPosition =
                             linearLayoutManager.findFirstCompletelyVisibleItemPosition()
                         var itemCount = mainAdapter.itemCount
                         var lastItemInPage = linearLayoutManager.findLastCompletelyVisibleItemPosition()
-                        // Retrieve user data "id" based on the last item of the page to be the value "since"
-                        var lastUserDataId = if (lastItemInPage == perPage - 1) {
-                            users[lastItemInPage].id
-                        } else {
-                            0
-                        }
 
-                        Log.d(TAG, "scrollListener childCount: $childCount")
-                        Log.d(TAG, "scrollListener findFirstCompletelyVisibleItemPosition: $findFirstCompletelyVisibleItemPosition")
-                        Log.d(TAG, "scrollListener itemCount: $itemCount")
-                        Log.d(TAG, "scrollListener lastItemInPage: $lastItemInPage")
-                        Log.d(TAG, "scrollListener lastUserDataId: $lastUserDataId")
-
-                        if (!isLoading) {
+                        if (!isPaginateLoading) {
                             if (childCount + findFirstCompletelyVisibleItemPosition >= itemCount) {
-                                Log.d(TAG, "ItemVisibleCount next paging: ${childCount + findFirstCompletelyVisibleItemPosition}")
-
-                                if (lastUserDataId != 0) {
-                                    loadMore(lastUserDataId)
-                                }
+                                since = usersDisplay[lastItemInPage].id
+                                loadMore()
                             }
                         }
                     }
@@ -164,29 +152,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadMore(lastUserDataId: Int) {
+    private fun loadMore() {
         isFirstTimeLoading = false
-        isLoading = true
+        isPaginateLoading = true
         binding.progressBarPaging.visibility = View.VISIBLE
 
-        since = lastUserDataId
-//        perPage += 10
-
-//        if (perPage == 100) {
-//            // Stop loading data
-//            isLoading = false
-//            binding.progressBarPaging.visibility = View.GONE
-//        } else {
-//            // Load data according to "since" and "per_page" data
-//            viewModel.getUsers(since, perPage)
-//            isLoading = false
-//            binding.progressBarPaging.visibility = View.GONE
-//        }
-
-        if (isLoading) {
+        if (isPaginateLoading) {
             // Load data according to "since" and "per_page" data
             viewModel.getUsers(since, perPage)
-            isLoading = false
+            isPaginateLoading = false
             binding.progressBarPaging.visibility = View.GONE
         }
     }
